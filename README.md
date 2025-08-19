@@ -1,46 +1,47 @@
 # Coach Matcher
 
-A Python tool for intelligently matching debate coaches to student groups for tournaments based on historical drill sessions, recency, coverage, and coach specialties.
+A python tool for matching debate coaches to student groups at tournaments. It scores coaches based on past drill sessions, recency, coverage, time spent, and event specialties.
 
 ## Overview
 
-Coach Matcher analyzes past coaching sessions to recommend the best coaches for a specific group of students at an upcoming tournament. It uses a weighted scoring system that considers:
+Coach Matcher reviews past coaching data and recommends the best coaches for a group of students. It uses a weighted scoring system that considers:
 
-- **Recency**: How recently coaches worked with group students (with exponential decay)
-- **Volume**: Total number of sessions with group members
-- **Coverage**: Percentage of group students the coach has worked with
-- **Minutes**: Total coaching time with group members
-- **Specialty**: Coach's expertise match with the event type and overall rating
+* **Recency**: How recently coaches worked with the group (with decay over time)
+* **Volume**: Number of sessions with group members
+* **Coverage**: Percentage of group coached
+* **Minutes**: Total coaching time
+* **Specialty**: Event expertise and rating
 
 ## Features
 
-- Multi-factor scoring algorithm with customizable weights
-- Time-decay recency scoring with configurable half-life
-- Student coverage analysis across the group
-- Event specialty matching (LD, PF, CX, etc.)
-- Detailed scoring breakdowns for transparency
+* **Multi-factor Scoring**: Customizable weights for each factor
+* **Recency Scoring**: Time-decay system with adjustable half-life
+* **Coverage Analysis**: Measures how many group members a coach has worked with
+* **Specialty Matching**: LD, PF, CX, etc.
+* **Detailed Output**: Breakdown of scoring for transparency
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.6 or higher
-- pip (Python package installer)
+* **Python 3.6+**
+* **pip**
 
-### Required Python Packages
+### Required Packages
 
 ```bash
 pip install pandas numpy
 ```
 
-Or create a `requirements.txt` file:
+Or create a `requirements.txt`:
 
-```txt
+```
 pandas>=1.3.0
 numpy>=1.21.0
 ```
 
 Then install with:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -51,68 +52,59 @@ pip install -r requirements.txt
 
 ```bash
 python coach_matcher.py \
-    --drills drills_log.csv \
-    --roster group_roster.csv \
-    --coaches coaches.csv \
-    --tournament "Greenhill 2025" \
-    --event "LD" \
-    --output recommendations.csv
+  --drills drills_log.csv \
+  --roster group_roster.csv \
+  --coaches coaches.csv \
+  --tournament "Greenhill 2025" \
+  --event "LD" \
+  --output recommendations.csv
 ```
 
-### Advanced Usage with Custom Parameters
+### Advanced Usage
 
 ```bash
 python coach_matcher.py \
-    --drills drills_log.csv \
-    --roster group_roster.csv \
-    --coaches coaches.csv \
-    --tournament "Greenhill 2025" \
-    --event "LD" \
-    --output recommendations.csv \
-    --as_of 2025-08-20 \
-    --half_life_days 45 \
-    --min_sessions 2 \
-    --weights '{"recency":0.5,"volume":0.25,"coverage":0.15,"minutes":0.05,"specialty":0.05}' \
-    --debug
+  --drills drills_log.csv \
+  --roster group_roster.csv \
+  --coaches coaches.csv \
+  --tournament "Greenhill 2025" \
+  --event "LD" \
+  --output recommendations.csv \
+  --as_of 2025-08-20 \
+  --half_life_days 45 \
+  --min_sessions 2 \
+  --weights '{"recency":0.5,"volume":0.25,"coverage":0.15,"minutes":0.05,"specialty":0.05}' \
+  --debug
 ```
 
-## Input File Formats
+## Input Files
 
-### 1. `drills_log.csv` - Historical Coaching Sessions
-Required columns:
-- `student`: Student name
-- `coach`: Coach name
-- `date`: Session date (YYYY-MM-DD format)
-- `minutes`: Session duration in minutes
-- `drill_type`: Type of drill/event (e.g., LD, PF)
+1. **drills\_log.csv** – past sessions
 
-### 2. `group_roster.csv` - Tournament Group Students
-Required columns:
-- `student`: Student name (must match names in drills_log.csv)
+   * `student`, `coach`, `date`, `minutes`, `drill_type`
+2. **group\_roster.csv** – tournament students
 
-### 3. `coaches.csv` - Coach Information
-Required columns:
-- `coach`: Coach name
-- `specialties`: Comma-separated list of event specialties
-- `rating`: Coach rating (numeric, e.g., 1-5)
+   * `student`
+3. **coaches.csv** – coach data
+
+   * `coach`, `specialties`, `rating`
 
 ## Command-Line Arguments
 
-| Argument | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `--drills` | Yes | - | Path to drills log CSV file |
-| `--roster` | Yes | - | Path to group roster CSV file |
-| `--coaches` | Yes | - | Path to coaches metadata CSV file |
-| `--tournament` | Yes | - | Tournament name (e.g., "Greenhill 2025") |
-| `--event` | No | None | Event type (e.g., "LD", "PF", "CX") |
-| `--output` | Yes | - | Path for output recommendations CSV |
-| `--as_of` | No | Today | Reference date for recency calculations (YYYY-MM-DD) |
-| `--half_life_days` | No | 30 | Half-life for exponential decay in recency scoring |
-| `--min_sessions` | No | 1 | Minimum sessions required for coach consideration |
-| `--weights` | No | See below | JSON string of scoring component weights |
-| `--debug` | No | False | Enable debug output |
+* **--drills**: Path to drills log CSV *(required)*
+* **--roster**: Path to roster CSV *(required)*
+* **--coaches**: Path to coach data CSV *(required)*
+* **--tournament**: Tournament name *(required)*
+* **--event**: Event type (LD, PF, CX) *(optional)*
+* **--output**: Output CSV *(required)*
+* **--as\_of**: Date for recency calculations *(default: today)*
+* **--half\_life\_days**: Half-life for recency *(default: 30)*
+* **--min\_sessions**: Minimum sessions *(default: 1)*
+* **--weights**: JSON weights for scoring
+* **--debug**: Show debug output
 
 ### Default Weights
+
 ```json
 {
   "recency": 0.4,
@@ -123,98 +115,75 @@ Required columns:
 }
 ```
 
-## Output Format
+## Output
 
-The tool generates a CSV file with the following columns:
+The tool generates a CSV with:
 
-- `coach`: Coach name
-- `tournament`: Tournament name
-- `event`: Event type (if specified)
-- `sessions`: Total sessions with group members
-- `students_covered`: Number of unique group students coached
-- `total_minutes`: Total coaching minutes with group
-- `recency_score`: Normalized recency score (0-1)
-- `volume_score`: Normalized volume score (0-1)
-- `coverage_score`: Percentage of group covered (0-1)
-- `minutes_score`: Normalized minutes score (0-1)
-- `specialty_score`: Combined specialty and rating score (0-1)
-- `combined_score`: Weighted final score
-- `percent_of_group_covered`: Coverage as percentage
-- `notes`: Additional insights (e.g., "Worked with majority of group recently")
+* **coach**, **tournament**, **event**
+* **sessions**, **students\_covered**, **total\_minutes**
+* **recency\_score**, **volume\_score**, **coverage\_score**, **minutes\_score**, **specialty\_score**
+* **combined\_score**, **percent\_of\_group\_covered**, **notes**
 
-## Scoring Algorithm
+## Scoring
 
-### Recency Score
-Uses exponential decay based on days since last session:
+### Recency
+
+Exponential decay:
+
 ```
 weight = 0.5^(days_ago / half_life_days)
 ```
 
-### Coverage Score
-Percentage of group students the coach has worked with:
+### Coverage
+
 ```
 coverage = students_coached_in_group / total_group_students
 ```
 
-### Specialty Score
-Weighted combination of event match (70%) and coach rating (30%):
+### Specialty
+
 ```
 specialty = 0.7 * event_match + 0.3 * normalized_rating
 ```
 
-### Combined Score
-Weighted sum of all component scores based on configured weights.
+### Combined
+
+Weighted sum of all scores.
 
 ## Examples
 
-### Example 1: Basic Tournament Matching
+**Example 1 – Basic Match**
+
 ```bash
-# Find best coaches for LD students at Greenhill
-python coach_matcher.py \
-    --drills drills_log.csv \
-    --roster group_roster.csv \
-    --coaches coaches.csv \
-    --tournament "Greenhill 2025" \
-    --event "LD" \
-    --output greenhill_ld_coaches.csv
+python coach_matcher.py --drills drills_log.csv --roster group_roster.csv \
+--coaches coaches.csv --tournament "Greenhill 2025" --event "LD" \
+--output greenhill_ld_coaches.csv
 ```
 
-### Example 2: Emphasize Recent Experience
+**Example 2 – Emphasize Recency**
+
 ```bash
-# Weight recency more heavily with shorter half-life
-python coach_matcher.py \
-    --drills drills_log.csv \
-    --roster group_roster.csv \
-    --coaches coaches.csv \
-    --tournament "Yale 2025" \
-    --event "PF" \
-    --output yale_pf_coaches.csv \
-    --half_life_days 15 \
-    --weights '{"recency":0.6,"volume":0.2,"coverage":0.1,"minutes":0.05,"specialty":0.05}'
+python coach_matcher.py --drills drills_log.csv --roster group_roster.csv \
+--coaches coaches.csv --tournament "Yale 2025" --event "PF" \
+--output yale_pf_coaches.csv --half_life_days 15 \
+--weights '{"recency":0.6,"volume":0.2,"coverage":0.1,"minutes":0.05,"specialty":0.05}'
 ```
 
-### Example 3: Require Minimum Experience
+**Example 3 – Require Minimum Experience**
+
 ```bash
-# Only consider coaches with at least 3 sessions
-python coach_matcher.py \
-    --drills drills_log.csv \
-    --roster group_roster.csv \
-    --coaches coaches.csv \
-    --tournament "TOC 2025" \
-    --event "LD" \
-    --output toc_experienced_coaches.csv \
-    --min_sessions 3
+python coach_matcher.py --drills drills_log.csv --roster group_roster.csv \
+--coaches coaches.csv --tournament "TOC 2025" --event "LD" \
+--output toc_experienced_coaches.csv --min_sessions 3
 ```
 
 ## Troubleshooting
 
-### Common Issues
-
-1. **"Missing columns" error**: Ensure your CSV files have all required columns (case-insensitive)
-2. **Empty recommendations**: Check that student names in roster match those in drills_log
-3. **Date parsing errors**: Ensure dates are in YYYY-MM-DD format
-4. **No coaches meet criteria**: Try lowering `--min_sessions` requirement
+* **Missing columns**: Check CSV headers
+* **Empty recommendations**: Ensure roster names match drills log
+* **Date errors**: Use YYYY-MM-DD format
+* **No coaches found**: Lower `--min_sessions`
 
 ## Author
 
-Spencer Swickle
+**Spencer Swickle**
